@@ -1,0 +1,8 @@
+stages:         
+  - deploy
+
+deploy-monitoring:      
+  stage: deploy
+  script:
+    - echo "Deploying application..." 
+    - ansible-playbook  monitoring.yml -kK
