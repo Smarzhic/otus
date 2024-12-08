@@ -1,8 +1,24 @@
+default:
+  tags:
+    - shell
+
+# variables:
+#   ANSIBLE_KEY: $ssh_key
+
 stages:         
   - deploy
+
 
 deploy-monitoring:      
   stage: deploy
   script:
-    - echo "Deploying application..." 
-    - ansible-playbook  monitoring.yml -kK
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook -vv -i ./Ansible/Inventory/monitoring ./Ansible/monitoring.yml
+  when: manual
+
+deploy-exporters:      
+  stage: deploy
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook -vv -i ./Ansible/Inventory/Node_Exporter ./Ansible/NodeExporter.yml
+  when: manual
