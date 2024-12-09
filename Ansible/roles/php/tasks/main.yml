@@ -1,0 +1,24 @@
+---
+- name: Upgrade system
+  apt: update_cache=yes
+
+- name: install php8.1
+  apt: pkg={{ item }}
+  with_items:
+    - php8.1
+    - php8.1-cgi
+    - php-fpm
+    - php8.1-memcache
+    - php8.1-memcached
+#    - php-mcrypt
+    - php8.1-mysql
+    - php8.1-gd
+    - php8.1-curl
+    - php8.1-xmlrpc
+
+- name: change listen socket
+  lineinfile:
+    dest: '/etc/php/8.1/fpm/pool.d/www.conf'
+    insertafter: 'listen = 127.0.0.1:9000'
+    line: 'listen = /var/run/php8.1-fpm.sock'
+  notify: restart php-fpm

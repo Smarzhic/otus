@@ -1,0 +1,13 @@
+- hosts: all
+  gather_facts: true
+  vars:
+    - domain: "192.168.0.164"
+    - download_url: "http://wordpress.org/latest.tar.gz"
+    - wpdirectory: "/var/www"
+ 
+  roles:
+   - nginx
+   - memcached
+   - php
+   - wordpress
+   - mysql

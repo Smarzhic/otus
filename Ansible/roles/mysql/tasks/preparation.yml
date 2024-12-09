@@ -1,0 +1,16 @@
+---
+- name: preparation
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: no
+  loop:
+    - wget
+    - ca-certificates
+    - apt-transport-https
+    - software-properties-common
+    - python3-pip
+
+- name: install pymysql
+  pip:
+    name: pymysql

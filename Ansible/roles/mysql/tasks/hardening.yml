@@ -1,0 +1,22 @@
+---
+- name: reload proveolages tables
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - FLUSH PRIVILEGES
+
+- name: remove anonymous users
+  mysql_user: name="" host="{{ item}}" state=absent
+  loop:
+    - localhost
+    - "{{ ansible_nodename}}"
+
+- name: disallow root remote
+  mysql_user: name=root host="{{ansible_nodename}}" state=absent
+
+- name: remove test databases
+  mysql_db: db=test state=absent
+
+- name: reload proveolages tables
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - FLUSH PRIVILEGES

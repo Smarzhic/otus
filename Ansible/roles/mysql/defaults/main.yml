@@ -1,0 +1,5 @@
+---
+mysql_root_pass: defaults
+mysql_socket_path: /run/mysqld/mysqld.sock
+remote_interface_name: eth0
+# wsrep_cluster_name: DomCluster

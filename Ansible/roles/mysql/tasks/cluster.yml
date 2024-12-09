@@ -1,0 +1,46 @@
+---
+# yamllint disable
+- name: chek if galera cluster
+  shell: |
+    grastate_path=/mnt/mysql/grastate.dat; # не дефолтное место
+    [[ -e $grastate_path && $(stat -c %s $grastate_path) -ne 0  ]] && echo "true" || echo "false";
+  args:
+    executable: /usr/bin/bash
+  register: galera_status
+
+- debug:
+    msg: "{{ galera_status}}"
+
+- name: Copy galera.cnf
+  template:
+    src: "galera/galera.cnf.j2"
+    dest: "/etc/mysql/mariadb.conf.d/galera.cnf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: stopped mysql
+  service:
+    name: mysql
+    state: stopped
+  when: galera_status.stdout == "false"
+
+- name: Initalize galera
+  shell: |
+    galera_new_cluster
+  when: galera_status.stdout == "false" and inventory_hostname == groups ['bd'][0]
+
+- name: start mysql
+  service:
+    name: mysql
+    state: started
+  when: galera_status.stdout == "false"
+
+- name: Check wsrep_cluster_size
+  command: mysql -u root -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
+  register: result
+
+- name: Display wsrep_cluster_size
+  debug:
+    var: result.stdout_lines
+# yamllint enable

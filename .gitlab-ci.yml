@@ -2,23 +2,41 @@ default:
   tags:
     - shell
 
-# variables:
-#   ANSIBLE_KEY: $ssh_key
+variables:
+  ANSIBLE_KEY: $ssh_key
 
 stages:         
   - deploy
 
+##
+# Connnection
+.ansible_step:
+  before_script:
+    - rm -rf ~/.ssh
+    - mkdir ~/.ssh
+    - echo "${ANSIBLE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
 
 deploy-monitoring:      
   stage: deploy
+  extends: .ansible_step
   script:
     - echo "Started deploy pipeline! 🚀"
-    - ansible-playbook -vv -i ./Ansible/Inventory/monitoring ./Ansible/monitoring.yml
+    - ansible-playbook  -i ./Ansible/Inventory/monitoring ./Ansible/monitoring.yml
   when: manual
 
 deploy-exporters:      
   stage: deploy
+  extends: .ansible_step
   script:
     - echo "Started deploy pipeline! 🚀"
-    - ansible-playbook -vv -i ./Ansible/Inventory/Node_Exporter ./Ansible/NodeExporter.yml
+    - ansible-playbook  -i ./Ansible/Inventory/Node_Exporter ./Ansible/NodeExporter.yml
+  when: manual
+
+deploy-app:      
+  stage: deploy
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/wordpress.yml
   when: manual

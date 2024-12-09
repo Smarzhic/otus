@@ -1,0 +1,23 @@
+{%- macro node_ip() -%}
+{%- for host in groups['bd'] -%}
+{%- if host == inventory_hostname -%}
+{{hostvars[host]['ansible_' + remote_interface_name].ipv4.address}}
+{%- endif -%}
+{%- endfor-%}
+{%- endmacro -%}
+
+{%- macro mariadb_cluster_ips() -%}
+{%- for host in groups['bd'] -%}
+{{hostvars[host]['ansible_' + remote_interface_name].ipv4.address}}{% if not loop.last %},{% endif %}
+{%- endfor-%}
+{%- endmacro -%}
+
+[galera]
+wsrep_on = ON
+wsrep_provider = /usr/lib/galera/libgalera_smm.so
+wsrep_cluster_address = "gcomm://{{ mariadb_cluster_ips() }}"
+binlog_format = row
+default_storage_engine = InnoDB
+innodb_autoinc_lock_mode = 2
+wsrep_cluster_name = "{{wsrep_cluster_name}}"
+wsrep_node_address = "{{ node_ip() }}"

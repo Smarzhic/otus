@@ -1,0 +1,20 @@
+---
+- name: configure_root_access
+  template:
+    src: "root/my.cnf.j2"
+    dest: "/root/.my.cnf"
+    owner: "root"
+    group: "root"
+    mode: "u=rw,g=,o="
+
+- name: updating root password
+  mysql_user:
+    host: "{{ item }}"
+    name: root
+    password: "{{ mysql_root_pass }}"
+  run_once: true
+  retries: 4
+  delay: 6
+  ignore_errors: true
+  loop:
+    - localhost

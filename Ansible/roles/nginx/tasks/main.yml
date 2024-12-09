@@ -1,0 +1,14 @@
+---
+#- name: Add nginx repository
+#  apt_repository: repo='ppa:nginx/stable'
+
+- name: install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: latest
+    update_cache: yes
+
+- name: Disable default site
+  file: 
+    path: /etc/nginx/sites-enabled/default
+    state: absent
