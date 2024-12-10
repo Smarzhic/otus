@@ -52,3 +52,8 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: 192.168.0.164:9115
+
+  - job_name: "bd"
+    scrape_interval: 5s
+    static_configs:
+     - targets: ["192.168.0.164:9104"]
