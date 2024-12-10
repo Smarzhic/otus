@@ -30,7 +30,7 @@
 - name: unpack WordPress installation
   shell: "tar xvfz /tmp/latest.tar.gz -C {{ wpdirectory }} && chown -R www-data:www-data {{ wpdirectory }}"
 
-- name: wordpress php
-  lineinfile:
-    path: /var/www/wordpress/wp-settings.php
-    line: define( 'WP_SITEURL', 'https//192.168.0.164' ); define( 'WP_HOME', 'http://192.168.0.164' );
+# - name: wordpress php
+#   lineinfile:
+#     path: /var/www/wordpress/wp-settings.php
+#     line: define( 'WP_SITEURL', 'http//192.168.0.164' ); define( 'WP_HOME', 'http://192.168.0.164' );
