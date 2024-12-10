@@ -15,10 +15,12 @@
 
 Результатом будет установленный Prometeus, Grafana, набор exporters и AlertManager
 
+![alt text](img/image6.png)
+
+![alt text](img/image4.png)
+
 ![alt text](img/image3.png)
 
 ![alt text](img/image5.png)
 
-![alt text](img/image4.png)
-
-![alt text](img/image6.png)
+![alt text](img/image7.png)
