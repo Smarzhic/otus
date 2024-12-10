@@ -6,7 +6,7 @@
 
 ![alt text](img/image.png)
 
-
+![alt text](img/image8.png)
 Результатом станет установка сервисов nginx, php, memcached, mysql и CMS wordpress
 
 ### Для деплоя системы мониторинга следует воспользоваться  job deploy-monitoring и deploy-exporters соответственно
