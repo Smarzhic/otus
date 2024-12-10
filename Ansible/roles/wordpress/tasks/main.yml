@@ -33,4 +33,4 @@
 # - name: wordpress php
 #   lineinfile:
 #     path: /var/www/wordpress/wp-settings.php
-#     line: define( 'WP_SITEURL', 'http//192.168.0.164' ); define( 'WP_HOME', 'http://192.168.0.164' );
+#     line: define( 'WP_SITEURL', 'https//192.168.0.164' ); define( 'WP_HOME', 'http://192.168.0.164' );

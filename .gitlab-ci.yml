@@ -7,6 +7,7 @@ variables:
 
 stages:         
   - deploy
+  - deploy_exporters
 
 ##
 # Connnection
@@ -24,14 +25,34 @@ deploy-monitoring:
     - echo "Started deploy pipeline! 🚀"
     - ansible-playbook  -i ./Ansible/Inventory/monitoring ./Ansible/monitoring.yml
   when: manual
+  needs: []
 
-deploy-exporters:      
-  stage: deploy
+Node_Exporter:      
+  stage: deploy_exporters
   extends: .ansible_step
   script:
     - echo "Started deploy pipeline! 🚀"
     - ansible-playbook  -i ./Ansible/Inventory/Node_Exporter ./Ansible/NodeExporter.yml
   when: manual
+  needs: []
+
+BlackBox_Exporter:      
+  stage: deploy_exporters
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/blackboxExporter.yml
+  when: manual
+  needs: []
+
+Mysql_Exporter:      
+  stage: deploy_exporters
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/mysqlexporter.yml
+  when: manual
+  needs: []
 
 deploy-app:      
   stage: deploy
@@ -40,3 +61,4 @@ deploy-app:
     - echo "Started deploy pipeline! 🚀"
     - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/wordpress.yml
   when: manual
+  needs: []

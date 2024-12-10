@@ -6,6 +6,7 @@
 
 ![alt text](img/image.png)
 
+
 Результатом станет установка сервисов nginx, php, memcached, mysql и CMS wordpress
 
 ### Для деплоя системы мониторинга следует воспользоваться  job deploy-monitoring и deploy-exporters соответственно
@@ -16,6 +17,8 @@
 
 ![alt text](img/image3.png)
 
+![alt text](img/image5.png)
+
 ![alt text](img/image4.png)
 
-![alt text](img/image5.png)
+![alt text](img/image6.png)
