@@ -1,0 +1,27 @@
+#
+# Ansible managed
+#
+
+[Unit]
+Description=Description=VictoriaMetrics service
+After=network.target
+
+[Service]
+Type=simple
+LimitNOFILE=2097152
+User=victoriametrics
+Group=victoriametrics
+ExecStart=/usr/local/bin/victoria-metrics-prod  -storageDataPath=/var/lib/victoria-metrics/ -selfScrapeInterval=30s -retentionPeriod=2w -maxConcurrentInserts=32 -search.maxUniqueTimeseries=900000
+SyslogIdentifier=victoriametrics
+Restart=always
+
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+
+ProtectSystem=full
+
+
+
+[Install]
+WantedBy=multi-user.target

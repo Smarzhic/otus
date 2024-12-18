@@ -27,6 +27,15 @@ deploy-monitoring:
   when: manual
   needs: []
 
+deploy-victoria:      
+  stage: deploy
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/monitoring ./Ansible/victoria.yml
+  when: manual
+  needs: []
+
 Node_Exporter:      
   stage: deploy_exporters
   extends: .ansible_step

@@ -4,6 +4,16 @@ global:
   evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
   # scrape_timeout is set to the global default (10s).
 
+  external_labels:
+    site: prod
+
+remote_write:
+  - url: http://192.168.0.155:8428/api/v1/write
+    queue_config:
+      max_samples_per_send: 10000
+      capacity: 20000
+      max_shards: 30
+
 # Alertmanager configuration
 alerting:
   alertmanagers:
@@ -58,4 +68,7 @@ scrape_configs:
     static_configs:
      - targets: ["192.168.0.164:9104"]
 
-##test reload
+  - job_name: 'node_exporter_victoria'
+    static_configs:
+      - targets:
+          - 192.168.0.155:8428

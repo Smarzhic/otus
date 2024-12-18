@@ -24,3 +24,21 @@
 ![alt text](img/image5.png)
 
 ![alt text](img/image7.png)
+
+# Подключение VictoriaMetric
+
+Для установки VictoriaMetric следует выполнить роль  deploy-victoria. Конфигурирование Prometeus в данном примере осуществляется в ручную. Файл конфигурации находится в каталоге GAP1
+
+![alt text](img/image9.png)
+
+![alt text](img/image10.png)
+
+![alt text](img/image11.png)
+
+### Подключаем хранилище Victoria к Grafana
+
+![alt text](img/image12.png)
+
+### И подключим дашбор для мониторинга Victoria
+
+![alt text](img/image13.png)
