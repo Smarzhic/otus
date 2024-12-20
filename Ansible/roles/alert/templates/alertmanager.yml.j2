@@ -1,0 +1,56 @@
+#
+# Ansible manadge
+#
+
+global:
+ resolve_timeout: 5m
+ telegram_api_url: "https://api.telegram.org"
+
+templates:
+  - '/etc/alertmanager/*.tmpl'
+
+receivers:
+ - name: blackhole
+ - name: telegram-warning
+   telegram_configs:
+    - chat_id: -1002345101660
+      message_thread_id: 2
+      bot_token: {{ bot_token }}
+      api_url: "https://api.telegram.org"
+      send_resolved: true
+      parse_mode: HTML
+
+ - name: telegram-crit
+   telegram_configs:
+    - chat_id: -1002345101660
+      message_thread_id: 4
+      bot_token: {{ bot_token }}
+      api_url: "https://api.telegram.org"
+      send_resolved: true
+      parse_mode: HTML
+
+
+
+
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: telegram-crit
+  routes:
+   - receiver: telegram-crit
+     continue: true
+     matchers:
+      - severity="critical"
+   - receiver: telegram-warning
+     continue: true
+     matchers:
+      - severity="warning"
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

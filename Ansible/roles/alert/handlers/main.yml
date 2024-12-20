@@ -1,0 +1,12 @@
+---
+- name: prometheus reload
+  systemd:
+    name: prometheus.service
+    enabled: yes
+    state: reloaded
+
+- name: alertmanager reload
+  systemd:
+    name: alertmanager.service
+    enabled: yes
+    state: reloaded

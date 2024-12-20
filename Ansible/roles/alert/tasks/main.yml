@@ -1,0 +1,14 @@
+---
+- name: copy alert
+  copy:
+    src=templates/alert.yml
+    dest=/etc/prometheus/
+
+
+- name: copy rules
+  template:
+    src: "templates/alertmanager.yml.j2"
+    dest: "/etc/alertmanager/alertmanager.yml"
+  notify:
+    - alertmanager reload
+    - prometheus reload

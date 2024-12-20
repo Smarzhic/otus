@@ -8,6 +8,7 @@ variables:
 stages:         
   - deploy
   - deploy_exporters
+  - alert_update
 
 ##
 # Connnection
@@ -69,5 +70,14 @@ deploy-app:
   script:
     - echo "Started deploy pipeline! 🚀"
     - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/wordpress.yml
+  when: manual
+  needs: []
+
+alert-update:      
+  stage: alert_update
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook -i ./Ansible/Inventory/monitoring ./Ansible/alert.yml
   when: manual
   needs: []
