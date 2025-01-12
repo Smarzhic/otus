@@ -54,3 +54,13 @@
 ![alt text](img/image15.png)
 
 ![alt text](img/image16.png)
+
+# Grafana - продвинутое использование
+
+![alt text](img/image17.png)
+
+![alt text](img/image18.png)
+
+![alt text](img/image19.png)
+
+![alt text](img/image20.png)
