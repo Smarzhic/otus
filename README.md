@@ -64,3 +64,55 @@
 ![alt text](img/image19.png)
 
 ![alt text](img/image20.png)
+
+# Установка Zabbix
+
+В ручную развернуты забикс-сервер изабикс-агент.
+
+![alt text](img/image21.png)
+
+Cформировать скрипт генерирующий метрики:
+
+```
+import random
+import json
+
+# Создаём список метрик
+metrics = [
+    {"{#METRIC}": "biba", "{#VALUE}": random.randint(0, 100)},
+    {"{#METRIC}": "boba", "{#VALUE}": random.randint(0, 100)},
+    {"{#METRIC}": "ziza", "{#VALUE}": random.randint(0, 100)},
+]
+
+# Преобразуем в JSON и выводим
+json_result = json.dumps(metrics, indent=4)
+print(json_result)
+```
+Добавлен UserParametr для получения метрик из скрипта
+
+```
+UserParameter=otus[*], python3 /etc/zabbix/zabbix_agent2.d/test.py
+```
+Добавил правило обнаружения
+
+![alt text](img/image22.png)
+
+Портотип итема
+
+![alt text](img/image23.png)
+
+Портотип тригера**
+
+![alt text](img/image24.png)
+
+** порог понижен до 80 так как не удавалось долго поймать срабатывание тригера
+
+Убеждаемся что метрики обнаружилсь, тригеры добавились, данные поступают.
+
+![alt text](img/image25.png)
+
+![alt text](img/image26.png)
+
+Настроена отправка оповещений в ТГ канал
+
+![alt text](img/image27.png)
