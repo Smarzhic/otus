@@ -1,0 +1,24 @@
+dbrp "cms"."autogen"
+
+var period  = 10s
+var every   = 10s
+var orgname = 'home'
+
+var data = batch
+              |queryFlux('''
+                from(bucket: "cms")
+                  |> range(start: -20s)
+                  |> filter(fn: (r) => r._measurement == "mysql" and r._field == "uptime")
+              ''')
+    .org(orgname)
+    .period(period)
+    .every(every)
+
+// Thresholds
+var alert = data
+    |deadman(0.0, 10s)
+      .stateChangesOnly()
+      .id('{{ index .Tags "host"}}.mysql')
+      .message('{{ .Level }} {{ .ID }} is {{ if eq .Level "OK" }}UP{{ else }}DOWN{{ end }}')
+      .log('/var/lib/kapacitor/mysql_alert_log.txt')
+      .telegram()

@@ -1,0 +1,28 @@
+// Parameters
+var period = 10s
+var every = 10s
+
+dbrp "cms"."autogen"
+
+// Dataframe
+var data = batch
+    |query('''
+     SELECT "http_response_code" AS "stat"
+     FROM "cms"."autogen"."http_response"
+     ''')
+        .period(period)
+        .every(every)
+        .groupBy('host')
+
+// Thresholds
+var alert = data
+    |alert()
+        .stateChangesOnly()
+        .id('{{ index .Tags "host"}}.http_response_code')
+        .message('{{ .Level }} {{ .ID }} there is a {{ index .Fields "stat" }} code on the site')
+        .crit(lambda: "stat" >= 500)
+
+// Alert
+alert
+        .log('/var/lib/kapacitor/http_alert_log.txt')
+        .telegram()
