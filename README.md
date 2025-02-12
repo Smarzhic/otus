@@ -139,7 +139,7 @@ sudo apt-get update && sudo apt-get install telegraf
 telegraf config > telegraf.conf
 ```
 
-Настроил для Telegraf сбор и отправку метрик в [01-telegraf.conf](TICK/Telegraf/01-telegraf.conf) по пути /etc/telegraf/telegraf.d/
+Настроил для Telegraf сбор и отправку метрик в [01-telegraf.conf](TICK-1/Telegraf/01-telegraf.conf) по пути /etc/telegraf/telegraf.d/
 
 ### Развёртывание Influxdb, Chronograf, Kapacitor
 
