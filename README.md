@@ -139,7 +139,7 @@ sudo apt-get update && sudo apt-get install telegraf
 telegraf config > telegraf.conf
 ```
 
-Настроил для Telegraf сбор и отправку метрик в [01-telegraf.conf](TICK-1/Telegraf/01-telegraf.conf) по пути /etc/telegraf/telegraf.d/
+Настроил для Telegraf сбор и отправку метрик в [01-telegraf.conf](TICK/Telegraf/01-telegraf.conf) по пути /etc/telegraf/telegraf.d/
 
 ### Развёртывание Influxdb, Chronograf, Kapacitor
 
@@ -337,3 +337,91 @@ services:
 А также доступны метрики собираемые Heartbeat
 
 ![alt text](img/image33.png)
+
+# Системы агрегации сообщений Logstash/Vector
+
+Logstash добавлен в предыдущий компз файл ELK
+
+```
+  logstash:
+    image: logstash:8.15.3
+    container_name: logstash
+    volumes:
+      - ./logstash/:/usr/share/logstash/pipeline/:rw
+    ports:
+      - 5044:5044
+    environment:
+      monitoring.enabled: "false"
+    networks:
+      - monitoring
+    depends_on:
+      - elastic
+```
+Файл конфигурации
+
+```
+input {
+    beats {
+        port => "5044"
+    }
+}
+filter {
+    if [event][module] == "nginx-filestream" {
+        grok {
+            match => { "message" => "%{COMBINEDAPACHELOG}"}
+        }
+        geoip {
+             source => "[source][address]"
+             target => "geoip"
+        }
+    }
+    if [event][module] == "mysql-filestream" {
+        grok {
+            match => { "message" => "%{TIMESTAMP_ISO8601:date} %{NOTSPACE:thread} \[%{NOTSPACE:label}\] \[%{NOTSPACE:err_code}\] \[%{NOTSPACE:subsystem}\] %{GREEDYDATA:event_message}"}
+        }
+    }
+    if [event][module] == "php-fpm-filestream" {
+        grok {
+            match => { "message" => "\[%{GREEDYDATA:date}\] %{LOGLEVEL:log_level}\: %{GREEDYDATA:event_message}"}
+        }
+    }
+}
+output {
+    elasticsearch {
+        hosts    => [ "192.168.0.170:9200" ]
+        user     => "elastic"
+        password => "eH4_AjRigsd11==t+Atu"
+        index    => "ecs-logstash-%{[event][module]}-%{+yyyy.MM.dd}"
+    }
+#     stdout { codec => rubydebug }
+}
+```
+
+ [Filebeat](Ansible/roles/install_filebeat/templates/filebeat.yml.j2) перенастроен на отправку логов в logstash
+
+Логи записываются в отдельные индексы
+![alt text](img/image34.png)
+
+Парсятся с помощью описанных grok фильтров
+
+![alt text](img/image35.png)
+
+Для установки Vector использована роль [ansible](Ansible/roles/install_vector) (не для прода, работает не стабильно)
+
+![alt text](img/image38.png)
+
+Для доступа Vector к файлам логов добавил его пользователя в необходимые группы и поправил права на каталогах
+
+```
+usermod -a -G www-data vector
+usermod -a -G mysql vector
+chmod 644 /var/log/nginx/
+```
+Логи  записываются в отдельные индексы
+
+![alt text](img/image36.png)
+
+успешно парсятся с помощью VRL
+
+![alt text](img/image37.png)
+

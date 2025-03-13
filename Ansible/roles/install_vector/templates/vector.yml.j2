@@ -1,0 +1,64 @@
+{% raw %}
+sources:
+  file_nginx_access_logs:
+    type: file
+    include:
+      - /var/log/nginx/access.log
+      - /var/log/nginx/*_access_log
+  file_nginx_error_logs:
+    type: file
+    include:
+      - /var/log/nginx/error.log
+      - /var/log/nginx/*_error_log
+  file_php-fpm_logs:
+    type: file
+    include:
+      - /var/log/php8.1-fpm.log
+  file_mysql_logs:
+    type: file
+    include:
+      - /var/log/mysql/error.log
+
+transforms:
+  nginx_logs:
+    type: remap
+    inputs:
+      - file_nginx_access_logs
+      - file_nginx_error_logs
+    source: >-
+      . |= parse_nginx_log!(.message, "combined")
+
+      .app_name = "nginx"
+  php-fpm_logs:
+    type: remap
+    inputs:
+      - file_php-fpm_logs
+    source: >-
+      . |= parse_regex!(.message, r'\[(?P<event_date>\d+\-\w+\-\d+\s\d+\:\d+\:\d+)\] (?P<event_severity>\w+)\: (?P<event_message>.*)$')
+
+      .app_name = "php-fpm"
+  mysql_logs:
+    type: remap
+    inputs:
+      - file_mysql_logs
+    source: >-
+      . |= parse_regex!(.message, r'(?P<event_date>\d+-\d+-\d+T\d+:\d+:\d+\.\d+.) (?P<event_thread>\d) \[(?P<event_label>\w+)\] \[(?P<event_err_code>\w+-\d+)\] \[(?P<event_subsystem>\w+)\] (?P<event_message>.*)$')
+
+      .app_name = "mysql"
+
+sinks:
+  elastic:
+    type: elasticsearch
+    inputs:
+      - nginx_logs
+      - php-fpm_logs
+      - mysql_logs
+    endpoints:
+      - http://192.168.0.170:9200
+    auth:
+      strategy: "basic"
+      user: "elastic"
+      password: "eH4_AjRigsd11==t+Atu"
+    bulk:
+      index: "ecs-vector-{{ .app_name }}-%Y-%m-%d"
+{% endraw %}

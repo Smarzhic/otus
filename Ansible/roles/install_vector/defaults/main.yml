@@ -1,0 +1,26 @@
+---
+# Версия Vector для установки
+vector_version: "0.45.0"
+
+# Директория для конфигурации Vector
+vector_config_dir: "/etc/vector"
+
+# Имя пользователя и группы для запуска Vector
+vector_user: "vector"
+vector_group: "vector"
+
+# # Источники и приемники для конфигурации Vector
+# vector_sources:
+#   - name: "syslog"
+#     type: "file"
+#     include:
+#       - "/var/log/syslog"
+#     read_from: "beginning"
+
+# vector_sinks:
+#   - name: "elasticsearch"
+#     type: "elasticsearch"
+#     inputs:
+#       - "syslog"
+#     endpoint: "http://192.168.0.170:9200"
+#     index: "vector-logs-%Y-%m-%d"

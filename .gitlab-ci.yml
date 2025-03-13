@@ -101,3 +101,12 @@ deploy_filebeat:
     - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/filebeat.yml
   when: manual
   needs: []
+
+deploy_vector:      
+  stage: deploy
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/vector.yml
+  when: manual
+  needs: []

@@ -1,0 +1,78 @@
+---
+- name: Ensure required packages are installed
+  apt:
+    name:
+      - curl
+      - tar
+    state: present
+
+- name: Create Vector group
+  group:
+    name: "{{ vector_group }}"
+    system: yes
+
+- name: Create Vector user and group
+  user:
+    name: "{{ vector_user }}"
+    group: "{{ vector_group }}"
+    system: yes
+    create_home: no
+
+- name: Download Vector
+  get_url:
+    url: "https://packages.timber.io/vector/0.45.0/vector-0.45.0-x86_64-unknown-linux-gnu.tar.gz"
+    dest: "/tmp/vector.tar.gz"
+    mode: "0644"
+
+- name: Extract Vector
+  unarchive:
+    src: "/tmp/vector.tar.gz"
+    dest: "/usr/local/bin"
+    remote_src: yes
+    extra_opts: ["--strip-components=2"]
+
+- name: Create Vector configuration directory
+  file:
+    path: "{{ vector_config_dir }}"
+    state: directory
+    owner: "{{ vector_user }}"
+    group: "{{ vector_group }}"
+    mode: "0755"
+
+- name: Deploy Vector configuration
+  template:
+    src: "vector.yml.j2"
+    dest: "{{ vector_config_dir }}/vector.yaml"
+    owner: "{{ vector_user }}"
+    group: "{{ vector_group }}"
+    mode: "0644"
+
+- name: Create systemd service for Vector
+  copy:
+    content: |
+      [Unit]
+      Description=Vector
+      Documentation=https://vector.dev
+      After=network.target
+
+      [Service]
+      User={{ vector_user }}
+      Group={{ vector_group }}
+      ExecStart=/usr/local/bin/vector --config {{ vector_config_dir }}/vector.yaml
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: "/etc/systemd/system/vector.service"
+    mode: "0644"
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Vector service
+  systemd:
+    name: vector
+    state: started
+    enabled: yes
