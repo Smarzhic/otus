@@ -1,0 +1,75 @@
+###################### Filebeat Configuration Example #########################
+
+# Generated using the Ansible
+
+# ============================== Filebeat inputs ===============================
+
+filebeat.inputs:
+- type: filestream
+  id: php-fpm
+  enabled: true
+  paths:
+    - /var/log/php8.1-fpm.log
+  fields:
+    event.module: php-fpm
+  fields_under_root: true
+
+# ================================== Logging ===================================
+
+# Sets log level. The default log level is info.
+# Available log levels are: error, warning, info, debug
+#logging.level: debug
+
+# ============================== Filebeat modules ==============================
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+  #reload.period: 10s
+
+# ======================= Elasticsearch template setting =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+  #_source.enabled: false
+
+# =================================== Kibana ===================================
+
+setup.kibana:
+  host: "http://192.168.0.170:5601"
+  username: "elastic"
+  password: "eH4_AjRigsd11==t+Atu"
+
+  #space.id:
+
+# ================================= Dashboards =================================
+# These settings control loading the sample dashboards to the Kibana index. Loading
+# the dashboards is disabled by default and can be enabled either by setting the
+# options here or by using the `setup` command.
+setup.dashboards.enabled: true
+
+# ================================== Outputs ===================================
+
+# ---------------------------- Elasticsearch Output ----------------------------
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["192.168.0.170:9200"]
+
+  # Performance preset - one of "balanced", "throughput", "scale",
+  # "latency", or "custom".
+  preset: balanced
+
+  # Protocol - either `http` (default) or `https`.
+  protocol: "http"
+
+  username: "elastic"
+  password: "eH4_AjRigsd11==t+Atu"
+
+# ================================= Processors =================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~

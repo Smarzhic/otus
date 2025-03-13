@@ -1,0 +1,51 @@
+---
+- name: Установка зависимостей
+  apt:
+    name:
+      - apt-transport-https
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Добавление GPG ключа Elastic
+  apt_key:
+    url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+    state: present
+
+- name: Добавление репозитория Elastic
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
+    state: present
+    filename: "elastic-8.x.list"
+
+- name: Установка Filebeat
+  apt:
+    name: filebeat
+    state: present
+    update_cache: yes
+
+- name: Настройка Filebeat
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart filebeat
+
+- name: Включение и запуск Filebeat
+  service:
+    name: filebeat
+    state: started
+    enabled: yes
+
+- name: Настройка модулей Filebeat
+  command: "filebeat modules enable {{ item }}"
+  loop:
+    - system
+    - auditd
+  when: filebeat_modules is defined and filebeat_modules
+
+- name: Настройка Filebeat в Elasticsearch и Kibana
+  command: "filebeat setup"
+  when: filebeat_setup is defined and filebeat_setup

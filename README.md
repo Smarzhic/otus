@@ -244,3 +244,96 @@ services:
 ### Проверил что алерты в kapasitor работают и отпрвляются в ТГ
 
 ![alt text](img/image29.png)
+
+# Beats - инструменты доставки данных
+
+Установка Filebeat и Metricbeat производится посредством запуска ansible плейбука в GitlabCI
+
+![alt text](img/image30.png)
+
+Конфигурационные файлы находятся в каталогах
+
+- [filebeat](Ansible/roles/install_filebeat)
+- [metricbeat](Ansible/roles/install_metricbeat)
+  
+## Установка Elasticsearch, Kibana и Heartbeat
+
+ сервисы развёрнуты с помощью docker-compose.yml
+
+```
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  elastic_vol:
+    driver: local
+
+services:
+  elastic:
+    image: elasticsearch:8.15.3
+    container_name: elastic
+    environment:
+      - node.name=elastic
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD='11111'
+      - xpack.security.enabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elastic_vol:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - monitoring
+
+  kibana:
+    image: kibana:8.15.3
+    container_name: kibana
+    environment:
+      SERVER_NAME: kibana
+      SERVER_PUBLICBASEURL: 'http://192.168.0.170:5601'
+      ELASTICSEARCH_HOSTS: '["http://192.168.0.170:9200"]'
+      ELASTICSEARCH_SSL_VERIFICATIONMODE: 'none'
+      ELASTICSEARCH_USERNAME: 'kibana'
+      ELASTICSEARCH_PASSWORD: 'aGg97x_hqSXsYC1JPLk3'
+    ports:
+      - 5601:5601
+    networks:
+      - monitoring
+    depends_on:
+      - elastic
+
+  heartbeat:
+    image: elastic/heartbeat:8.15.3
+    container_name: heartbeat
+    volumes:
+      - ./heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
+    environment:
+        - strict.perms=false
+    cap_add:
+      - NET_RAW
+    networks:
+      - monitoring
+    depends_on:
+      - elastic
+```
+
+## Логи, метрики
+
+В Kibana отображаются логи с Filebeat
+![alt text](img/image31.png)
+
+В Kibana доступны метрики собираемые Metricbeat, их можно посмотреть на дашбордe
+
+![alt text](img/image32.png)
+
+А также доступны метрики собираемые Heartbeat
+
+![alt text](img/image33.png)

@@ -1,0 +1,5 @@
+---
+elasticsearch_host: "http://192.168.0.170:9200"
+kibana_host: "http://192.168.0.170:5601"
+filebeat_modules: true
+filebeat_setup: true

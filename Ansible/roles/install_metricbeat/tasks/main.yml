@@ -1,0 +1,53 @@
+---
+- name: Установка зависимостей
+  apt:
+    name:
+      - apt-transport-https
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Добавление GPG ключа Elastic
+  apt_key:
+    url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+    state: present
+
+- name: Добавление репозитория Elastic
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+    state: present
+    filename: "elastic-7.x.list"
+
+- name: Установка Metricbeat
+  apt:
+    name: metricbeat
+    state: present
+    update_cache: yes
+
+- name: Настройка Metricbeat
+  template:
+    src: metricbeat.yml.j2
+    dest: /etc/metricbeat/metricbeat.yml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart metricbeat
+
+- name: Копирование модулей
+  template:
+    src: "../templates/modules/{{ item }}"
+    dest: "/etc/metricbeat/modules.d/{{ item | replace('.j2', '') }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - mysql.yml.j2
+    - nginx.yml.j2
+    - system.yml.j2
+  notify: restart metricbeat
+
+- name: Включение и запуск Metricbeat
+  service:
+    name: metricbeat
+    state: started
+    enabled: yes

@@ -8,7 +8,9 @@ variables:
 stages:         
   - deploy
   - deploy_exporters
+  - deploy_beats
   - alert_update
+
 
 ##
 # Connnection
@@ -79,5 +81,23 @@ alert-update:
   script:
     - echo "Started deploy pipeline! 🚀"
     - ansible-playbook -i ./Ansible/Inventory/monitoring ./Ansible/alert.yml
+  when: manual
+  needs: []
+
+deploy_metricbeat:      
+  stage: deploy_beats
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/metricbeat.yml
+  when: manual
+  needs: []
+
+deploy_filebeat:      
+  stage: deploy_beats
+  extends: .ansible_step
+  script:
+    - echo "Started deploy pipeline! 🚀"
+    - ansible-playbook  -i ./Ansible/Inventory/app ./Ansible/filebeat.yml
   when: manual
   needs: []
