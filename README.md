@@ -425,3 +425,89 @@ chmod 644 /var/log/nginx/
 
 ![alt text](img/image37.png)
 
+# Grafana Loki - управление логами и доставка 
+
+Для сбора логов установил Grafana Alloy по инструкции https://grafana.com/docs/alloy/latest/set-up/install/
+
+Для доступа Alloy к файлам логов добавил его пользователя в необходимые группы и поправил права на каталогах
+
+В UI Alloy виден статус и граф компонентов
+
+![alt text](img/image39.png)
+
+Файл конфигурации Alloy
+```
+ local.file_match "local_files" {
+     path_targets = [{"__path__" = "/var/log/nginx/access.log"}]
+     sync_period = "5s"
+ }
+
+ loki.source.file "log_scrape" {
+    targets    = local.file_match.local_files.targets
+    forward_to = [loki.process.filter_logs.receiver]
+    tail_from_end = true
+  }
+
+
+  loki.process "filter_logs" {
+    stage.drop {
+        source = ""
+        expression  = ".*Connection closed by authenticating user root"
+        drop_counter_reason = "noisy"
+      }
+    forward_to = [loki.write.grafana_loki.receiver]
+    }
+
+  loki.write "grafana_loki" {
+    endpoint {
+      url = "http://192.168.0.183:3100/loki/api/v1/push"
+
+      // basic_auth {
+      //  username = "admin"
+      //  password = "admin"
+      // }
+    }
+  }
+```
+Grafana и Grafana Loki запустил с помощью docker-compose.yml
+
+```
+networks:
+  monitoring:
+    driver: bridge
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "root"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SERVER_ROOT_URL: "http://192.168.0.183:3000"
+      GF_SERVER_DOMAIN: "home.local"
+      GF_PATHS_PROVISIONING: /usr/share/grafana/conf/provisioning
+    ports:
+      - 3000:3000
+    restart: always
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: -config.file=/mnt/config/loki-local-config.yaml
+    restart: always
+    volumes:
+      - ./loki:/mnt/config:rw
+    ports:
+    - "3100:3100"
+    networks:
+      - monitoring
+```
+В Grafane видно что постпупают данные из loki
+![alt text](img/image40.png)
