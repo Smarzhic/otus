@@ -549,3 +549,174 @@ schema_config:
 
 В Grafane видно что постпупают данные из loki
 ![alt text](img/image40.png)
+
+# Opensearch
+
+## Fluent Bit
+Установка выполнена по инструкции с [сайта](https://docs.fluentbit.io/manual/installation/linux/ubuntu)
+
+Файл конфигурации
+```
+[SERVICE]
+    Flush        5
+    Daemon       Off
+    Log_Level    info
+    Parsers_File parsers.conf
+    Plugins_File plugins.conf
+    HTTP_Server  Off
+    HTTP_Listen  0.0.0.0
+    HTTP_Port    2020
+    storage.metrics on
+
+[INPUT]
+    Name          tail
+    Path          /var/log/nginx/*log
+    Refresh_Interval 5
+    Tag           nginx
+
+[INPUT]
+    Name          tail
+    Path          /var/log/php8.1-fpm.log
+    Refresh_Interval 5
+    Tag           php-fpm
+
+[INPUT]
+    Name          tail
+    Path          /var/log/mysql/error.log
+    Refresh_Interval 5
+    Tag           mysql
+
+[FILTER]
+    Name          modify
+    Match         nginx
+    Add           app_name nginx
+
+[FILTER]
+    Name          modify
+    Match         php-fpm
+    Add           app_name php-fpm
+
+[FILTER]
+    Name          modify
+    Match         mysql
+    Add           app_name mysql
+
+[OUTPUT]
+    Name          http
+    Match         *
+    Host          192.168.0.183
+    Port          2021
+    URI           /log/ingest
+    Format        json
+
+[OUTPUT]
+    Name          stdout
+    Match         *
+
+```
+## Data Prepper Opensearch и Opensearch Dashboard
+
+Запущены через docker-compose
+```
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  opensearch_vol:
+    driver: local
+
+services:
+  dataprepper:
+    container_name: dataprepper
+    image: opensearchproject/data-prepper:2.10.1
+    volumes:
+      - ./dataprepper/pipeline.yaml:/usr/share/data-prepper/pipelines/pipeline.yaml
+    ports:
+      - 2021:2021
+    networks:
+      - monitoring
+    restart: always
+    depends_on:
+      - opensearch
+
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: opensearch
+    environment:
+      - cluster.name=opensearch-docker-cluster
+      - node.name=opensearch
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch_vol:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - monitoring
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.18.0
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    expose:
+      - "5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://192.168.0.183:9200"]'
+      OPENSEARCH_USERNAME: "admin"
+      OPENSEARCH_PASSWORD: ""
+    networks:
+      - monitoring
+    depends_on:
+      - opensearch
+```
+Конфигурация приёма, парсинга и отправки логов описана в pipeline.yaml
+```
+log-pipeline:
+  source:
+    http:
+      port: 2021
+      ssl: false
+  processor:
+    - grok:
+        grok_when: '/app_name == "nginx"'
+        match:
+          log: ['%{COMMONAPACHELOG}']
+    - grok:
+        grok_when: '/app_name == "php-fpm"'
+        match:
+          log: ['\[%{GREEDYDATA:event.date}\] %{LOGLEVEL:event.log_level}\: %{GREEDYDATA:event.message}']
+    - grok:
+        grok_when: '/app_name == "mysql"'
+        match:
+          log: ['%{TIMESTAMP_ISO8601:event.date} %{NOTSPACE:event.thread} \[%{NOTSPACE:event.label}\] \[%{NOTSPACE:event.err_code}\] \[%{NOTSPACE:event.subsystem}\] %{GREEDYDATA:event.message}']
+
+  sink:
+    - opensearch:
+        hosts: ["https://192.168.0.183:9200"]
+        insecure: true
+        username: admin
+        password: NtgkfzDtcyf2025
+        index: os-dataprepper-${/app_name}-%{yyyy.MM.dd}
+        template_type: index-template
+    - stdout:
+
+```
+Видно что данные от Data Prepper записываются в Opensearch. Для каждого приложения логи помещаются в отдельный индекс.
+
+![alt text](img/image41.jpg)
+
+С помощью grok-парсера в Data Prepper журналы разбираются по полям и их можно просмотреть в Opensearch Dashboard
+
+![alt text](img/image42.jpg)
