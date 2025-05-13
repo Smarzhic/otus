@@ -20,7 +20,6 @@ gitlab - в качетсве инструмента CI/CD
 
 Exporter's - экспортеры метрик  
 Prometheus - хранилище метрик  
-Victoria Metrics - долговременное хранилище метрик  
 Grafana Alloy - агент сбора логов  
 Grafana Loki - система агрегации логов  
 Grafana - визуализация  
