@@ -12,6 +12,24 @@ groups:
         annotations:
           summary: Prometheus target missing (instance {{ $labels.instance }})
           description: "A Prometheus target has disappeared. An exporter might be crashed.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+ 
+      - alert: MysqlDown
+        expr: mysql_up == 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: MySQL down (instance {{ $labels.instance }})
+          description: "MySQL instance is down on {{ $labels.instance }}\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: MysqlRestarted
+        expr: mysql_global_status_uptime < 60
+            for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: MySQL restarted (instance {{ $labels.instance }})
+          description: "MySQL has just been restarted, less than one minute ago on {{ $labels.instance }}.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
   - name: BlackBox_exporter
     rules:
@@ -32,3 +50,4 @@ groups:
         annotations:
           summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
           description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
